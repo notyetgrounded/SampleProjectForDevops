@@ -15,11 +15,17 @@ jobs:
       
       - name: restore
         run: dotnet restore
-      
-      - name: Build with version
+      - name: set-vars
+        id: set-vars
         run: |
           VERSION=1.0.${{ github.run_number }}
-          dotnet build --configuration Release --no-restore -o build_output -p:Version=$VERSION
+          BUILD_NAME="my-dotnet-build-$VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "build_name=$BUILD_NAME" >> $GITHUB_OUTPUT
+      - name: Build with version
+        id: build 
+        run: |
+          dotnet build --configuration Release --no-restore -o build_output -p:Version=${{steps.set-vars.outputs.version}}
 
       - name: Test
         run: dotnet test --no-build --verbosity d
@@ -27,8 +33,12 @@ jobs:
       - name: Upload build output as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: my-dotnet-build-1.0.${{ github.run_number }}
+          name: ${{steps.set-vars.outputs.build_name}}
           path: build_output
+
+  # push-to-oct:
+  #   steps:
+
 
 
 
