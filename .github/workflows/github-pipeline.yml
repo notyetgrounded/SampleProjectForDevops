@@ -27,7 +27,7 @@ jobs:
       - name: Upload build output as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: my-dotnet-build
+          name: my-dotnet-build-1.0.${{ github.run_number }}
           path: build_output
 
 
