@@ -58,7 +58,7 @@ jobs:
             --id=${{ vars.PROJECT_NAME }} \
             --version=${{ needs.build.outputs.version }} \
             --format="zip" \
-            --basePath="./build_output" \
+            --basePath="./" \
             --outFolder="./packages"
       - name: push package to octopus
         uses: OctopusDeploy/push-package-action@v3
