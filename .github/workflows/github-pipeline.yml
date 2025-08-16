@@ -8,7 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     container: 
       image: mcr.microsoft.com/dotnet/sdk:8.0
-
+    outputs:
+      build_name: ${{steps.set-vars.outputs.build_name}}
+      version: ${{steps.set-vars.outputs.version}}
     steps:
       - name: Check out
         uses: actions/checkout@v4
@@ -36,9 +38,33 @@ jobs:
           name: ${{steps.set-vars.outputs.build_name}}
           path: build_output
 
-  # push-to-oct:
-  #   steps:
+  push_to_octopus:
+    runs-on: ubuntu-latest
+    needs: build
 
+    steps:
+      - name: Download package
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{needs.build.outputs.build_name}}
 
+      - name: install octopus
+        uses: OctopusDeploy/install-octopus-cli@v1
 
+      - name: Package application
+        run: |
+          octo pack \
+            --id=${{ vars.PROJECT_NAME }} \
+            --version=${{ needs.build.outputs.version }} \
+            --format="zip" \
+            --basePath="./publish_output" \
+            --outFolder="./packages"
+      - name: push package to octopus
+        uses: OctopusDeploy/push-package-action@v3
+        with:
+          api_key: ${{ secrets.OCTOPUS_API_KEY }}
+          server: ${{ vars.OCTOPUS_SERVER_URL }}
+          space: ${{ vars.OCTOPUS_SPACE }}
+          packages: "packages/*.zip"
+          overwrite_mode: OverwriteExisting
 
